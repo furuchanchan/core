@@ -1,6 +1,6 @@
 import {
-  dedupePcbDrcErrors,
   consolidatePcbOverlapErrors,
+  dedupePcbDrcErrors,
   runAllNetlistChecks,
   runAllPinSpecificationChecks,
   runAllPlacementChecks,
@@ -32,8 +32,8 @@ import type { SubcircuitI } from "../primitive-components/Group/Subcircuit/Subci
 import { Subcircuit_doInitialRenderIsolatedSubcircuits } from "../primitive-components/Group/Subcircuit/Subcircuit_doInitialRenderIsolatedSubcircuits"
 import { Subcircuit_getSubcircuitPropHash } from "../primitive-components/Group/Subcircuit_getSubcircuitPropHash"
 import type { BoardI } from "./BoardI"
-import { Board_doInitialPcbImplicitCopperPourRender } from "./Board_doInitialPcbImplicitCopperPourRender"
 import { Board_doInitialPcbCopperPourCleanup } from "./Board_doInitialPcbCopperPourCleanup"
+import { Board_doInitialPcbImplicitCopperPourRender } from "./Board_doInitialPcbImplicitCopperPourRender"
 import { Board_doInitialPcbPlacementDesignRuleChecks } from "./Board_doInitialPcbPlacementDesignRuleChecks"
 import { BoardCastellatedHole } from "./board-castellated-hole"
 
@@ -589,8 +589,23 @@ export class Board
       ...(props.solderMaskColor !== undefined && {
         solder_mask_color: props.solderMaskColor,
       }),
+      ...(props.topSolderMaskColor !== undefined && {
+        top_solder_mask_color: props.topSolderMaskColor,
+      }),
+      ...(props.bottomSolderMaskColor !== undefined && {
+        bottom_solder_mask_color: props.bottomSolderMaskColor,
+      }),
       ...(props.silkscreenColor !== undefined && {
         silkscreen_color: props.silkscreenColor,
+      }),
+      ...(props.topSilkscreenColor !== undefined && {
+        top_silkscreen_color: props.topSilkscreenColor,
+      }),
+      ...(props.bottomSilkscreenColor !== undefined && {
+        bottom_silkscreen_color: props.bottomSilkscreenColor,
+      }),
+      ...(props.doubleSidedAssembly !== undefined && {
+        double_sided_assembly: props.doubleSidedAssembly,
       }),
 
       min_trace_width:
