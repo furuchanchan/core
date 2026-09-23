@@ -102,10 +102,11 @@ export class Resistor extends NormalComponent<
       supplier_part_numbers: props.supplierPartNumbers,
 
       resistance: props.resistance,
+      tolerance: props.tolerance,
       display_resistance: this._getSchematicSymbolDisplayValue(),
       are_pins_interchangeable: true,
       display_name: props.displayName,
-    } as SourceSimpleResistorInput)
+    } as SourceSimpleResistorInput & { tolerance?: number })
     this.source_component_id = source_component.source_component_id
   }
 }
