@@ -1,9 +1,3 @@
-import { getConstructionPropsSchema } from "./get-construction-props-schema"
-import {
-  selectNetByLiteralSelector,
-  type NetSelector,
-} from "./select-net-by-literal-selector"
-import type { Net } from "lib/components/primitive-components/Net"
 import type { PcbSx } from "@tscircuit/props"
 import type { AnySourceComponent, LayerRef } from "circuit-json"
 import { type Options, selectAll, selectOne } from "css-select"
@@ -14,6 +8,7 @@ import { Renderable } from "lib/components/base-components/Renderable"
 import type { BoardI } from "lib/components/normal-components/BoardI"
 import type { IGroup } from "lib/components/primitive-components/Group/IGroup"
 import type { ISubcircuit } from "lib/components/primitive-components/Group/Subcircuit/ISubcircuit"
+import type { Net } from "lib/components/primitive-components/Net"
 import type { ISymbol } from "lib/components/primitive-components/Symbol/ISymbol"
 import { InvalidProps } from "lib/errors/InvalidProps"
 import type { Ftype } from "lib/utils/constants"
@@ -30,7 +25,7 @@ import type {
 } from "lib/utils/schematic/getAllDimensionsForSchematicBox"
 import { getRotatedSymbolName } from "lib/utils/schematic/getRotatedSymbolName"
 import { isMatchingSelector } from "lib/utils/selector-matching"
-import { type SchSymbol, symbols } from "schematic-symbols"
+import { type SchSymbol, resizeSymbol, symbols } from "schematic-symbols"
 import {
   type Matrix,
   applyToPoint,
@@ -47,7 +42,12 @@ import {
   cssSelectPrimitiveComponentAdapterOnlySubcircuits,
   cssSelectPrimitiveComponentAdapterWithoutSubcircuits,
 } from "./cssSelectPrimitiveComponentAdapter"
+import { getConstructionPropsSchema } from "./get-construction-props-schema"
 import { preprocessSelector } from "./preprocessSelector"
+import {
+  type NetSelector,
+  selectNetByLiteralSelector,
+} from "./select-net-by-literal-selector"
 
 const cssSelectOptionsInsideSubcircuit: Options<
   PrimitiveComponent,
@@ -874,7 +874,38 @@ export abstract class PrimitiveComponent<
   getSchematicSymbol(): SchSymbol | null {
     const symbol_name = this._getSchematicSymbolName()
     if (!symbol_name) return null
-    return symbols[symbol_name as keyof typeof symbols] ?? null
+    const symbol = symbols[symbol_name as keyof typeof symbols] ?? null
+    if (!symbol) return null
+    const targetSpacing = this._getSchSizePinSpacing()
+    if (targetSpacing === undefined) return symbol
+    const pin1 = symbol.ports.find((p) => p.labels.includes("1"))
+    const pin2 = symbol.ports.find((p) => p.labels.includes("2"))
+    if (!pin1 || !pin2) return symbol
+    const naturalSpacing = Math.hypot(pin2.x - pin1.x, pin2.y - pin1.y)
+    if (naturalSpacing <= 0) return symbol
+    if (Math.abs(targetSpacing - naturalSpacing) < 1e-6) return symbol
+    return resizeSymbol(symbol, {
+      width: symbol.size.width * (targetSpacing / naturalSpacing),
+    })
+  }
+
+  /**
+   * schSize is "the distance between pin1 and pin2 of the schematic symbol".
+   * Enum sizes that have dedicated symbol variants (xs, sm) are resolved via
+   * the variant name in `schematicSymbolName`, so only a numeric distance or
+   * `md` (standard 1mm passive pin spacing) reach this method. The zod
+   * `distance` union member parses enum names to NaN, so enum names are read
+   * from the raw prop while distances come from the parsed value.
+   */
+  _getSchSizePinSpacing(): number | undefined {
+    const rawSchSize = (this.props as { schSize?: number | string }).schSize
+    if (typeof rawSchSize === "number") return rawSchSize
+    if (rawSchSize === "md") return 1
+    const parsedSchSize = (this._parsedProps as { schSize?: number }).schSize
+    if (typeof parsedSchSize === "number" && Number.isFinite(parsedSchSize)) {
+      return parsedSchSize
+    }
+    return undefined
   }
 
   /**

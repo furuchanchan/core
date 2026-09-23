@@ -415,7 +415,7 @@ export class NormalComponent<
     }
 
     if (config.schematicSymbolName && !opts.ignoreSymbolPorts) {
-      const sym = symbols[this._getSchematicSymbolNameOrThrow()]
+      const sym = this.getSchematicSymbol()
       if (!sym) return
 
       const hasSymbolPortAliases = sym.ports.some((port) =>
@@ -851,7 +851,7 @@ export class NormalComponent<
 
     const symbol_name = this._getSchematicSymbolNameOrThrow()
 
-    const symbol: SchSymbol | undefined = symbols[symbol_name]
+    const symbol: SchSymbol | null = this.getSchematicSymbol()
 
     const center = this._getGlobalSchematicPositionBeforeLayout()
 
@@ -1668,7 +1668,7 @@ export class NormalComponent<
     if (this.root?.schematicDisabled) return []
     const { config } = this
     if (!config.schematicSymbolName) return []
-    const symbol: SchSymbol = (symbols as any)[config.schematicSymbolName]
+    const symbol = this.getSchematicSymbol()
     if (!symbol) return []
     const newPorts: Port[] = []
     for (const symbolPort of symbol.ports) {
