@@ -2362,6 +2362,8 @@ export class Group<Props extends z.ZodType<any, any, any> = typeof groupProps>
               subcircuit_id: this.subcircuit_id!,
               pcb_group_id: this.pcb_group_id ?? undefined,
               subcircuit_connectivity_map_key: subcircuitConnectivityMapKey,
+              tented_on_top: board?.default_via_tented_on_top,
+              tented_on_bottom: board?.default_via_tented_on_bottom,
             }
             if (
               materializedPcbVias.some((materializedPcbVia) =>
